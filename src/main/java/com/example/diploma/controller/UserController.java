@@ -2,55 +2,58 @@ package com.example.diploma.controller;
 
 import com.example.diploma.dto.UpdateUserDto;
 import com.example.diploma.dto.UserDto;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import com.example.diploma.entity.Image;
+import com.example.diploma.repository.UserRepository;
+import com.example.diploma.service.ImageService;
+import com.example.diploma.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/users")
-@Tag(name = "Пользователи", description = "API для работы с пользователями")
+@RequiredArgsConstructor
 public class UserController {
 
+    private final UserService userService;
+    private final ImageService imageService;
+    private final UserRepository userRepository;
+
     @GetMapping("/me")
-    @Operation(summary = "Получить информацию о текущем пользователе")
-    @ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<UserDto> getMe() {
-        UserDto response = new UserDto();
-        response.setId(1);
-        response.setEmail("user@mail.ru");
-        response.setFirstName("Иван");
-        response.setLastName("Иванов");
-        response.setPhone("+7(999)123-45-67");
-        return ResponseEntity.ok(response);
+    public ResponseEntity<UserDto> getMe(Authentication authentication) {
+        Long userId = getUserIdFromAuthentication(authentication);
+        return ResponseEntity.ok(userService.getMe(userId));
     }
 
     @PatchMapping("/me")
-    @Operation(summary = "Обновить информацию о пользователе")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "400", description = "Некорректные данные")
-    })
-    public ResponseEntity<UserDto> updateMe(@Valid @RequestBody UpdateUserDto updateUserDto) {
-        UserDto response = new UserDto();
-        response.setId(1);
-        response.setEmail("user@mail.ru");
-        response.setFirstName(updateUserDto.getFirstName());
-        response.setLastName(updateUserDto.getLastName());
-        response.setPhone(updateUserDto.getPhone());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<UserDto> updateMe(@RequestBody UpdateUserDto updateUserDto,
+                                            Authentication authentication) {
+        Long userId = getUserIdFromAuthentication(authentication);
+        return ResponseEntity.ok(userService.updateMe(userId, updateUserDto));
     }
 
-    @PostMapping("/me/image")
-    @Operation(summary = "Загрузить аватар")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "400", description = "Ошибка загрузки")
-    })
-    public ResponseEntity<Void> uploadImage() {
+    @PatchMapping(value = "/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> updateUserImage(@RequestParam("image") MultipartFile image,
+                                                Authentication authentication) throws IOException {
+        Long userId = getUserIdFromAuthentication(authentication);
+
+        Image savedImage = imageService.saveImage(image.getBytes());
+
+        userService.updateAvatar(userId, savedImage.getId());
+
         return ResponseEntity.ok().build();
+    }
+
+    private Long getUserIdFromAuthentication(Authentication authentication) {
+        String email = authentication.getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + email))
+                .getId();
     }
 }

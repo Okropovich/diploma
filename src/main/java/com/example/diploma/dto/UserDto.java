@@ -7,7 +7,7 @@ import lombok.Data;
 @Schema(description = "Информация о пользователе")
 public class UserDto {
     @Schema(description = "ID пользователя")
-    private Integer id;
+    private Long id;
     @Schema(description = "Имя пользователя", example = "user@mail.ru")
     private String email;
     @Schema(description = "Имя", example = "Иван")

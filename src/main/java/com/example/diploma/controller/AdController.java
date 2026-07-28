@@ -1,110 +1,86 @@
 package com.example.diploma.controller;
 
-import com.example.diploma.dto.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import com.example.diploma.dto.AdDto;
+import com.example.diploma.dto.AdsDto;
+import com.example.diploma.dto.CreateAdDto;
+import com.example.diploma.repository.UserRepository;
+import com.example.diploma.service.AdService;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/ads")
-@Tag(name = "Объявления", description = "API для работы с объявлениями")
+@RequiredArgsConstructor
 public class AdController {
 
+    private final AdService adService;
+    private final UserRepository userRepository;
+
     @GetMapping
-    @Operation(summary = "Получить все объявления")
-    @ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<AdsDto> getAllAds() {
-        AdsDto response = new AdsDto();
-        response.setCount(0);
-        response.setResults(new ArrayList<>());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(adService.getAllAds());
     }
 
-    @PostMapping
-    @Operation(summary = "Создать объявление")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Объявление создано"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
-    })
-    public ResponseEntity<AdDto> createAd(@Valid @RequestBody CreateAdDto createAdDto) {
-        AdDto response = new AdDto();
-        response.setPk(1);
-        response.setPrice(createAdDto.getPrice());
-        response.setTitle(createAdDto.getTitle());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AdDto> addAd(@RequestPart("properties") CreateAdDto properties,
+                                       @RequestPart("image") MultipartFile image,
+                                       Authentication authentication) throws IOException {
+        Long userId = getUserIdFromAuth(authentication);
+        return ResponseEntity.status(HttpStatus.CREATED).body(adService.createAd(properties, image, userId));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Получить объявление по ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "404", description = "Объявление не найдено")
-    })
-    public ResponseEntity<FullAdDto> getAd(@PathVariable Integer id) {
-        FullAdDto response = new FullAdDto();
-        response.setPk(id);
-        response.setTitle("Пример объявления");
-        response.setDescription("Описание");
-        response.setPrice(10000);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<AdDto> getAds(@PathVariable Long id) {
+        return ResponseEntity.ok(adService.getAdById(id));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить объявление")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Объявление удалено"),
-            @ApiResponse(responseCode = "403", description = "Доступ запрещен")
-    })
-    public ResponseEntity<Void> deleteAd(@PathVariable Integer id) {
+    public ResponseEntity<Void> removeAd(@PathVariable Long id, Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        boolean isAdmin = checkIsAdmin(authentication);
+        adService.deleteAd(id, userId, isAdmin);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Обновить объявление")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Объявление обновлено"),
-            @ApiResponse(responseCode = "403", description = "Доступ запрещен")
-    })
-    public ResponseEntity<AdDto> updateAd(@PathVariable Integer id,
-                                          @Valid @RequestBody CreateAdDto createAdDto) {
-        AdDto response = new AdDto();
-        response.setPk(id);
-        response.setPrice(createAdDto.getPrice());
-        response.setTitle(createAdDto.getTitle());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<AdDto> updateAds(@PathVariable Long id,
+                                           @RequestBody CreateAdDto properties,
+                                           Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        boolean isAdmin = checkIsAdmin(authentication);
+        return ResponseEntity.ok(adService.updateAd(id, properties, userId, isAdmin));
     }
 
-    @GetMapping("/{id}/comments")
-    @Operation(summary = "Получить комментарии к объявлению")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "404", description = "Объявление не найдено")
-    })
-    public ResponseEntity<CommentsDto> getComments(@PathVariable Integer id) {
-        CommentsDto response = new CommentsDto();
-        response.setCount(0);
-        response.setResults(new ArrayList<>());
-        return ResponseEntity.ok(response);
+    @GetMapping("/me")
+    public ResponseEntity<AdsDto> getAdsMe(Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        return ResponseEntity.ok(adService.getAdsByUser(userId));
     }
 
-    @PostMapping("/{id}/comments")
-    @Operation(summary = "Создать комментарий")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Комментарий создан"),
-            @ApiResponse(responseCode = "401", description = "Не авторизован")
-    })
-    public ResponseEntity<CommentDto> createComment(@PathVariable Integer id,
-                                                    @Valid @RequestBody CreateCommentDto createCommentDto) {
-        CommentDto response = new CommentDto();
-        response.setPk(1);
-        response.setText(createCommentDto.getText());
-        return ResponseEntity.ok(response);
+    @PatchMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> updateImage(@PathVariable Long id,
+                                              @RequestPart("image") MultipartFile image) throws IOException {
+        byte[] imageData = adService.updateAdImage(id, image);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(imageData);
+    }
+
+    private Long getUserIdFromAuth(Authentication authentication) {
+        String email = authentication.getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + email))
+                .getId();
+    }
+
+    private boolean checkIsAdmin(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }
 }
