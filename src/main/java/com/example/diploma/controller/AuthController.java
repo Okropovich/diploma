@@ -16,11 +16,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Аутентификация", description = "API для входа и регистрации")
+@Tag(name = "Аутентификация", description = "API для входа, регистрации и смены пароля")
 public class AuthController {
 
     private final AuthService authService;
@@ -46,7 +47,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PostMapping("/set_password")
+    @PostMapping("/users/set_password")
     @Operation(summary = "Смена пароля")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Пароль изменен"),

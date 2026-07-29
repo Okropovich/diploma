@@ -8,12 +8,12 @@ import com.example.diploma.service.ImageService;
 import com.example.diploma.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 
 @RestController
@@ -42,12 +42,18 @@ public class UserController {
     public ResponseEntity<Void> updateUserImage(@RequestParam("image") MultipartFile image,
                                                 Authentication authentication) throws IOException {
         Long userId = getUserIdFromAuthentication(authentication);
-
         Image savedImage = imageService.saveImage(image.getBytes());
-
         userService.updateAvatar(userId, savedImage.getId());
-
         return ResponseEntity.ok().build();
+    }
+
+    // Добавленный эндпоинт, который запрашивает фронтенд (устраняет ошибку 404)
+    @GetMapping("/me/image/{id}")
+    public ResponseEntity<byte[]> getUserImage(@PathVariable Long id) {
+        Image image = imageService.getImage(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+        return new ResponseEntity<>(image.getData(), headers, org.springframework.http.HttpStatus.OK);
     }
 
     private Long getUserIdFromAuthentication(Authentication authentication) {
