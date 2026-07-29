@@ -32,11 +32,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Подключаем наши правила CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(
+                                "/auth/**", // <-- Исправлено: теперь разрешены /auth/login, /auth/register и т.д.
                                 "/login", "/register",
                                 "/images/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**"
@@ -44,9 +45,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/ads", "/ads/*").permitAll()
 
-
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
 
                         .anyRequest().authenticated()
                 )
