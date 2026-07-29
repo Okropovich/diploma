@@ -23,13 +23,13 @@ public interface CommentMapper {
 
     CommentsDto toCommentsDto(Integer count, List<Comment> results);
 
-    // Вспомогательный метод для конвертации Long ID изображения в String (для поля authorImage)
+
     @Named("imageToString")
     default String imageToString(Long imageId) {
         return imageId != null ? "/images/" + imageId : null;
     }
 
-    // Вспомогательный метод для конвертации LocalDateTime в timestamp (Long)
+
     @Named("localDateTimeToLong")
     default Long localDateTimeToLong(LocalDateTime localDateTime) {
         return localDateTime != null ? localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli() : null;

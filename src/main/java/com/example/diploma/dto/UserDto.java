@@ -7,15 +7,17 @@ import lombok.Data;
 @Schema(description = "Информация о пользователе")
 public class UserDto {
     @Schema(description = "ID пользователя")
-    private Long id;
-    @Schema(description = "Имя пользователя", example = "user@mail.ru")
+    private Integer id;
+    @Schema(description = "email (логин)")
     private String email;
-    @Schema(description = "Имя", example = "Иван")
+    @Schema(description = "Имя")
     private String firstName;
-    @Schema(description = "Фамилия", example = "Иванов")
+    @Schema(description = "Фамилия")
     private String lastName;
-    @Schema(description = "Телефон", example = "+7(999)123-45-67")
+    @Schema(description = "Телефон")
     private String phone;
-    @Schema(description = "URL аватара")
+    @Schema(description = "Ссылка на аватар")
     private String image;
+    @Schema(description = "Роль пользователя", example = "ADMIN")
+    private String role;
 }

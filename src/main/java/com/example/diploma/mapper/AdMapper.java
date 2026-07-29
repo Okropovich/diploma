@@ -17,6 +17,7 @@ public interface AdMapper {
     @Mapping(target = "pk", source = "id")
     @Mapping(target = "author", source = "author.id")
     @Mapping(target = "image", source = "image", qualifiedByName = "imageToPath")
+    @Mapping(target = "description", source = "description")
     AdDto toAdDto(Ad ad);
 
     @Mapping(target = "pk", source = "id")
@@ -24,6 +25,7 @@ public interface AdMapper {
     @Mapping(target = "authorLastName", source = "author.lastName")
     @Mapping(target = "phone", source = "author.phone")
     @Mapping(target = "image", source = "image", qualifiedByName = "imageToPath")
+    @Mapping(target = "description", source = "description")
     FullAdDto toFullAdDto(Ad ad);
 
     default AdsDto toAdsDto(int count, List<Ad> results) {

@@ -13,6 +13,7 @@ import org.mapstruct.Named;
 public interface UserMapper {
 
     @Mapping(target = "image", source = "image", qualifiedByName = "imageToString")
+    @Mapping(target = "role", source = "role") // <-- Добавили передачу роли на фронтенд
     UserDto toDto(User user);
 
     @Mapping(target = "email", source = "email")

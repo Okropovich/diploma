@@ -35,7 +35,7 @@ public class User {
     @Column(nullable = false)
     private String role;
 
-    // Связь с таблицей изображений через поле image_id
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "image_id", referencedColumnName = "id")
     private Image image;
