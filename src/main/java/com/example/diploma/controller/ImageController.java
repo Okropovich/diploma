@@ -18,7 +18,7 @@ import java.io.IOException;
 @RequestMapping("/images")
 @RequiredArgsConstructor
 @Tag(name = "Изображения", description = "API для работы с картинками")
-@CrossOrigin(value = "http://localhost:3000")
+
 public class ImageController {
 
     private final ImageService imageService;

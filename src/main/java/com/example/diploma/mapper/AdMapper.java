@@ -2,7 +2,6 @@ package com.example.diploma.mapper;
 
 import com.example.diploma.dto.AdDto;
 import com.example.diploma.dto.AdsDto;
-import com.example.diploma.dto.FullAdDto;
 import com.example.diploma.entity.Ad;
 import com.example.diploma.entity.Image;
 import org.mapstruct.Mapper;
@@ -19,14 +18,6 @@ public interface AdMapper {
     @Mapping(target = "image", source = "image", qualifiedByName = "imageToPath")
     @Mapping(target = "description", source = "description")
     AdDto toAdDto(Ad ad);
-
-    @Mapping(target = "pk", source = "id")
-    @Mapping(target = "authorFirstName", source = "author.firstName")
-    @Mapping(target = "authorLastName", source = "author.lastName")
-    @Mapping(target = "phone", source = "author.phone")
-    @Mapping(target = "image", source = "image", qualifiedByName = "imageToPath")
-    @Mapping(target = "description", source = "description")
-    FullAdDto toFullAdDto(Ad ad);
 
     default AdsDto toAdsDto(int count, List<Ad> results) {
         AdsDto adsDto = new AdsDto();
