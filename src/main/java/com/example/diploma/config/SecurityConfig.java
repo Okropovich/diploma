@@ -15,7 +15,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.List;
 
 @Configuration
@@ -35,37 +34,31 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-
                         .requestMatchers(
-                                "/auth/**", // <-- Исправлено: теперь разрешены /auth/login, /auth/register и т.д.
+                                "/auth/**",
                                 "/login", "/register",
                                 "/images/**",
+                                "/users/me/image/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**"
                         ).permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/ads", "/ads/*").permitAll()
-
+                        // Разрешаем просмотр всех объявлений и конкретного объявления по ID, но НЕ /ads/me
+                        .requestMatchers(HttpMethod.GET, "/ads").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/ads/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/ads/{id}/comments").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> {});
-
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-
         configuration.setAllowedHeaders(List.of("*"));
-
         configuration.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

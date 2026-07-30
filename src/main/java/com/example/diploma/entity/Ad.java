@@ -3,7 +3,6 @@ package com.example.diploma.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,10 +10,9 @@ import java.util.List;
 @Table(name = "ads")
 @Data
 public class Ad {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id; // Было Integer
 
     @Column(nullable = false)
     private String title;
