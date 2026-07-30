@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="1" author="okropovich">
+        <createTable tableName="users">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone" type="VARCHAR(20)"/>
+            <column name="role" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image" type="TEXT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="okropovich">
+        <createTable tableName="ads">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image" type="TEXT"/>
+            <column name="author_id" type="INT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_ads_author"
+                             referencedTableName="users"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="3" author="okropovich">
+        <createTable tableName="comments">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author_id" type="INT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_comments_author"
+                             referencedTableName="users"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="ad_id" type="INT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_comments_ad"
+                             referencedTableName="ads"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-images-table" author="user">
+        <createTable tableName="images">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="data" type="OID"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="5" author="okropovich">
+        <addColumn tableName="users">
+            <column name="image_id" type="BIGINT">
+                <constraints foreignKeyName="fk_users_image"
+                             referencedTableName="images"
+                             referencedColumnNames="id"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="ads">
+            <column name="image_id" type="BIGINT">
+                <constraints foreignKeyName="fk_ads_image"
+                             referencedTableName="images"
+                             referencedColumnNames="id"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
